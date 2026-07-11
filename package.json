@@ -1,10 +1,15 @@
 {
   "name": "claude-redline",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "author": "canta2899",
   "description": "Live, Google-Docs-style review UI for giving an Agent granular feedback on a markdown document.",
   "type": "module",
   "license": "MIT",
   "packageManager": "pnpm@10.19.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/canta2899/claude-redline"
+  },
   "engines": {
     "node": ">=20"
   },

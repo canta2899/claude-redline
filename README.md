@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./.github/assets/logo.png" alt="redline logo" width="400"/>
+<img src="./assets/logo.png" alt="redline logo" width="400"/>
 </div>
 
 <h1 align="center">
@@ -65,10 +65,8 @@ From there:
 All of this happens through a small CLI, `claude-redline`, which the skill
 drives on your behalf — you normally never type these yourself.
 
-<p align="center">
-  <img src=".github/assets/screenshot-review.png" width="49%" alt="An ask thread and a change request, both open" />
-  <img src=".github/assets/screenshot-reply.png" width="49%" alt="The agent's reply, and the change request addressed and removed" />
-</p>
+![An ask thread and a change request, both open](./assets/screenshot-review.png)
+![The agent's reply, and the change request addressed and removed](./assets/screenshot-reply.png)
 
 *Left: a question and a change request, both waiting on the agent. Right:
 the agent replied to the question and fixed the code — the change request is
