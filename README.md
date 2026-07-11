@@ -6,15 +6,11 @@
     redline
 </h1>
 
-That guy up there is you, three chat threads deep into a design doc, one
-doubt away from pulling your remaining hair out. Redline is the fix: a live,
-Google-Docs-style review UI for giving an agent granular feedback on a
-markdown document. Point redline at a **file**; you read it in the browser and,
-on any part of it, **ask a question** or **request a change** (or comment on
-the whole thing). Everything is realtime over a websocket — the agent sees
-your feedback the moment you leave it, and its replies and edits appear in
-your browser as they happen, no tab-switching or refreshing required. One
-running server per file, zero hair loss.
+That guy up there is you, right after asking Claude one question and getting
+back 400 words, six caveats, and three open questions of its own.
+You don't even know where to start, you disagree on some things, need to reply on others and need clarification on 10 points.
+Redline fixes that: a live, Google-Docs-style review UI where you can sort everything out: highlight anything, **ask** or **request a change**,
+and the agent answers or fixes it right there, in place, in real time.
 
 ## Install
 
@@ -134,14 +130,16 @@ Stops the running review (equivalent to `Ctrl-C` in the terminal running
 `open`). Writes the discussion to `<file>.review.md` next to the document
 before exiting.
 
-## Why just a skill (no MCP)
+## Context Consumption
 
-I care about context consumption. An MCP server pays a token tax up front —
-every tool definition sits in context for the entire conversation whether
-you use it or not. A skill doesn't: it's a short description until it's
-actually invoked, and only then does it disclose the detail needed to drive
-the CLI. Redline is deliberately built around one skill wrapping a plain CLI,
-so the cost only shows up when you actually run a review.
+I care about context consumption. Redline spins up the server and attaches a monitor to view events on the document,
+each event is as small as possible. The whole document is never sent back-and-forth on every question.
+
+With this purpose in mind, i deliberately chose to use a single skill file instead of an MCP server. Since the whole
+process runs locally and there's no need for authentication, i felt like using a skill was the right choice to avoid
+paying a token tax upfront by forcing claude to read all the tools descriptions on each conversation (even when redline is not used).
+
+By using a skill, the agent progressively discloses redline usage as it's needed, and only when you actually invoke it.
 
 ## Updating
 
