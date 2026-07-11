@@ -24,8 +24,6 @@
     "build:server": "node scripts/build-server.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p src/frontend/tsconfig.json --noEmit",
     "test": "node --import tsx --test test/session.test.ts",
-    "link": "pnpm build && pnpm link --global",
-    "unlink": "pnpm unlink --global",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
