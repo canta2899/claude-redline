@@ -1,16 +1,20 @@
-<center>
-  <img src=".github/assets/logo.png" alt="redline logo" width="420" />
-</center>
+<div align="center">
+<img src="./.github/assets/logo.png" alt="redline logo" width="400"/>
+</div>
 
-# redline
+<h1 align="center">
+    redline
+</h1>
 
-A live, Google-Docs-style review UI for giving an agent granular feedback on a
+That guy up there is you, three chat threads deep into a design doc, one
+doubt away from pulling your remaining hair out. Redline is the fix: a live,
+Google-Docs-style review UI for giving an agent granular feedback on a
 markdown document. Point redline at a **file**; you read it in the browser and,
 on any part of it, **ask a question** or **request a change** (or comment on
 the whole thing). Everything is realtime over a websocket — the agent sees
 your feedback the moment you leave it, and its replies and edits appear in
 your browser as they happen, no tab-switching or refreshing required. One
-running server per file.
+running server per file, zero hair loss.
 
 ## Install
 
