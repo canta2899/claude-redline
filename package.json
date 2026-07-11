@@ -1,0 +1,50 @@
+{
+  "name": "claude-redline",
+  "version": "0.1.0",
+  "description": "Live, Google-Docs-style review UI for giving an Agent granular feedback on a markdown document.",
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@10.19.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "claude-redline": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skill"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c blue,magenta \"pnpm dev:server\" \"pnpm dev:web\"",
+    "dev:server": "tsx watch src/dev-server.ts",
+    "dev:web": "vite",
+    "build": "pnpm run build:web && pnpm run build:server",
+    "build:web": "vite build",
+    "build:server": "node scripts/build-server.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p src/frontend/tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/session.test.ts",
+    "link": "pnpm build && pnpm link --global",
+    "unlink": "pnpm unlink --global",
+    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "concurrently": "^9.1.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/ws": "^8.5.13",
+    "@vitejs/plugin-react": "^4.3.4",
+    "esbuild": "^0.24.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.1",
+    "remark-gfm": "^4.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  }
+}

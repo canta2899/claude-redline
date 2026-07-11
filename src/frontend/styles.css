@@ -1,0 +1,793 @@
+/* Calm editor — a quiet review surface: a white document floating on soft slate,
+   one confident indigo accent, crisp sans body, a monospace utility face for
+   labels and meta. Boldness is spent on the margin comment cards; everything
+   else stays disciplined. */
+
+:root {
+  --workspace: #eef1f5;
+  --page: #ffffff;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --ink-soft: #3d4351;
+  --muted: #6b7280;
+  --faint: #9aa1ad;
+  --border: #e4e7ee;
+  --border-strong: #d3d8e2;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef0fe;
+  --accent-ink: #3730a3;
+
+  --ok: #16a34a;
+  --ok-soft: #eaf6ee;
+  --danger: #dc2626;
+  --danger-soft: #fdecec;
+  --mark: #fde68a;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 6px 16px rgba(16, 24, 40, 0.06);
+  --shadow-pop: 0 10px 30px rgba(16, 24, 40, 0.16);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --sans: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  font-family: var(--sans);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--workspace);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  background: var(--page);
+  color: var(--ink-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.85rem;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+button:hover:not(:disabled) {
+  background: #f4f6fa;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+button:focus-visible,
+textarea:focus-visible,
+.add-comment-fab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-primary:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:not(:disabled):hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: #e6eaf1;
+  color: var(--ink);
+}
+.btn-outline:not(:disabled) {
+  background: var(--page);
+  border-color: var(--border-strong);
+  color: var(--accent-ink);
+}
+.btn-outline:not(:disabled):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---- Top bar ------------------------------------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 1.5rem;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.brand-mark {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--accent), #7c74ff);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.brand-name {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  font-size: 0.98rem;
+}
+.conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #eceff4;
+}
+.conn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+.conn-connected {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+.conn-connected .conn-dot {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.16);
+}
+.conn-error .conn-dot,
+.conn-disconnected .conn-dot {
+  background: var(--danger);
+}
+.thread-count {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #eceff4;
+}
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---- Workspace: page + comment margin ------------------------------------ */
+.workspace {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px 24px 140px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.doc-wrap {
+  flex: 1 1 820px;
+  max-width: 860px;
+  min-width: 0;
+}
+.doc-col {
+  position: relative;
+}
+.page {
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 52px 64px;
+  font-size: 1.02rem;
+  color: var(--ink-soft);
+}
+.page > :first-child {
+  margin-top: 0;
+}
+.page > :last-child {
+  margin-bottom: 0;
+}
+.page h1,
+.page h2,
+.page h3 {
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+.page h1 {
+  font-size: 1.8rem;
+  font-weight: 680;
+}
+.page h2 {
+  font-size: 1.35rem;
+  font-weight: 640;
+  margin-top: 2rem;
+}
+.page h3 {
+  font-size: 1.1rem;
+  font-weight: 620;
+}
+.page a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+.page pre {
+  background: #f7f8fb;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.page code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+}
+.page :not(pre) > code {
+  background: #f0f1f5;
+  padding: 0.12em 0.38em;
+  border-radius: 5px;
+  color: var(--accent-ink);
+}
+.page blockquote {
+  margin: 1rem 0;
+  padding: 0.2rem 0 0.2rem 1rem;
+  border-left: 3px solid var(--border-strong);
+  color: var(--muted);
+}
+.page ::selection {
+  background: var(--mark);
+  color: #3a2f00;
+}
+
+.general-composer {
+  margin-top: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+}
+.general-composer-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 8px;
+}
+.general-composer .composer {
+  margin-top: 0;
+}
+
+/* ---- Selection action pill (Google-Docs style) --------------------------- */
+.sel-pill {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+  animation: fab-in 0.12s ease;
+}
+.sel-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 550;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0;
+}
+.sel-pill-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.sel-pill-sep {
+  width: 1px;
+  background: var(--border);
+}
+@keyframes fab-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(2px);
+  }
+}
+
+/* ---- Intent tag (Question / Change request) ------------------------------ */
+.intent-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 3px 8px 3px 6px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.intent-question {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+.intent-change {
+  color: #9a6a00;
+  background: #fdf3d6;
+}
+
+/* ---- Quote highlights in the document (CSS Custom Highlight API) --------- */
+::highlight(redline-quote) {
+  background-color: rgba(253, 230, 138, 0.45);
+}
+::highlight(redline-quote-active) {
+  background-color: var(--mark);
+  color: #3a2f00;
+}
+
+/* ---- Comment margin ------------------------------------------------------ */
+.margin {
+  flex: 0 0 340px;
+  min-width: 0;
+}
+.margin-hint {
+  font-size: 0.86rem;
+  color: var(--muted);
+  background: #e9edf3;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin: 0;
+}
+
+/* Anchored layer: open threads float at their quote's height, absolutely
+   positioned; the layer reserves the height they occupy. */
+.thread-layer {
+  position: relative;
+}
+.thread-anchor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.thread-anchor.is-active {
+  z-index: 5;
+}
+.thread-anchor.is-active .thread {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-pop);
+}
+
+.resolved-section {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.margin-divider {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.thread {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.thread-quote {
+  font-size: 0.76rem;
+  color: var(--muted);
+  background: #fdf7e3;
+  border-left: 3px solid var(--mark);
+  border-radius: 0 6px 6px 0;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+}
+/* The cited span was edited out of the document — desaturate it and drop the
+   "live quote" accent so it reads as detached rather than mis-highlighted. */
+.thread-quote-orphaned {
+  background: var(--surface-2, #f2f2f0);
+  border-left-color: var(--border, #d9d9d6);
+  border-left-style: dashed;
+  font-style: italic;
+}
+.thread-quote-note {
+  font-style: normal;
+  opacity: 0.7;
+}
+.thread-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment {
+  border-radius: var(--radius-sm);
+}
+.comment-agent {
+  background: var(--accent-soft);
+  border: 1px solid #e0e2fb;
+  padding: 10px 12px;
+}
+.comment-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+  min-height: 18px;
+}
+.comment-author {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.comment-agent .comment-author {
+  color: var(--accent-ink);
+}
+.comment-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.comment:hover .comment-tools,
+.comment:focus-within .comment-tools {
+  opacity: 1;
+}
+.comment-body {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.comment-body > :first-child {
+  margin-top: 0;
+}
+.comment-body > :last-child {
+  margin-bottom: 0;
+}
+.comment-body pre {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.comment.editing {
+  padding: 0;
+  background: transparent;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--faint);
+  border-radius: 6px;
+}
+.icon-btn:hover:not(:disabled) {
+  background: #eef1f6;
+  color: var(--ink);
+}
+.icon-btn.icon-danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.pending-tag {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+  color: #9a6a00;
+}
+
+/* Ask threads waiting on the Agent's reply — a quiet "it's working" cue. */
+.awaiting-reply {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  color: var(--accent-ink);
+}
+
+/* A small indeterminate spinner. Inherits its parent's text color so it reads
+   as part of whatever pending line it sits in. */
+.spinner {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-top-color: currentColor;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+/* A change request reads as an action item: warm left edge to set it apart from asks. */
+.thread-change {
+  border-left: 3px solid #f0c65a;
+}
+
+.thread-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--page);
+  color: var(--ink-soft);
+}
+.chip-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.chip-btn.chip-resolve:hover:not(:disabled) {
+  border-color: var(--ok);
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.link-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.link-btn:hover:not(:disabled) {
+  background: transparent;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* ---- Resolved (collapsed) strip ------------------------------------------ */
+.thread-resolved {
+  background: #f3f5f8;
+  box-shadow: none;
+  border-style: solid;
+  padding: 10px 14px;
+}
+.thread-resolved .thread-quote {
+  background: transparent;
+  border-left-color: var(--border-strong);
+  color: var(--faint);
+  margin-bottom: 6px;
+  padding: 2px 0 2px 10px;
+}
+.resolved-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ok);
+  margin-bottom: 6px;
+}
+.resolved-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.resolved-head .link-btn {
+  margin-left: auto;
+}
+.resolved-summary {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.resolved-summary > :first-child {
+  margin-top: 0;
+}
+.resolved-summary > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Composer (shared) --------------------------------------------------- */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.composer textarea {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  min-height: 3.2rem;
+  resize: vertical;
+  background: var(--page);
+  color: var(--ink);
+}
+.composer textarea::placeholder {
+  color: var(--faint);
+}
+.composer textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.composer-actions button {
+  font-size: 0.82rem;
+  padding: 0.32rem 0.85rem;
+}
+.composer-hint {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--faint);
+}
+
+/* ---- Selection popup ----------------------------------------------------- */
+.selection-popup {
+  position: fixed;
+  z-index: 50;
+  width: 316px;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  padding: 14px;
+}
+.selection-quote {
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: #fdf7e3;
+  border-left: 3px solid var(--mark);
+  border-radius: 0 6px 6px 0;
+  padding: 6px 10px;
+  margin-bottom: 2px;
+}
+
+/* ---- Misc ---------------------------------------------------------------- */
+.empty {
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: var(--muted);
+}
+.empty code {
+  font-family: var(--mono);
+  background: #e6eaf1;
+  padding: 0.1em 0.4em;
+  border-radius: 5px;
+}
+.closed-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-pop);
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    flex-direction: column;
+    align-items: center;
+    padding-top: 24px;
+  }
+  .doc-wrap {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .margin {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 860px;
+  }
+  /* Stacked: the margin sits below the document, so quote anchors all collapse to
+     the top and the cards simply stack in order — no doc-relative floating. */
+  /* Keep the fixed selection pill / popup reachable at the right gutter. */
+  .sel-pill,
+  .selection-popup {
+    left: auto !important;
+    right: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 32px 22px;
+  }
+  .workspace {
+    padding: 20px 14px 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
