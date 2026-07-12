@@ -9,10 +9,11 @@ import { SessionManager } from "./lib/session.js";
 import { renderTranscript } from "./lib/transcript.js";
 import { watchDocument } from "./lib/watcher.js";
 
+declare const __REDLINE_VERSION__: string | undefined;
+const VERSION = typeof __REDLINE_VERSION__ !== "undefined" ? __REDLINE_VERSION__ : "0.0.0-dev";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// dist/cli.js and dist/public sit side by side after `vite build`.
 const publicDir = join(__dirname, "public");
-// dist/cli.js and skill/ sit side by side in the published package.
 const bundledSkillPath = join(__dirname, "..", "skill", "SKILL.md");
 
 const DEFAULT_PORT = 7842;
@@ -56,6 +57,8 @@ async function cmdOpen(path: string | undefined, port: number): Promise<void> {
   const abs = resolve(path);
   if (!existsSync(abs)) fail(`open: file not found: ${abs}`);
 
+  ensureSkillCurrent();
+
   const manager = new SessionManager(readFileSync(abs, "utf8"));
   const stopWatching = watchDocument(abs, (content) => manager.setDocument(content));
   const redline = createRedlineServer({ manager, publicDir, onShutdownRequest: shutdown });
@@ -89,7 +92,7 @@ async function cmdOpen(path: string | undefined, port: number): Promise<void> {
   process.once("SIGTERM", shutdown);
   process.once("SIGHUP", shutdown);
   console.log(JSON.stringify({ url: localUrl(port), events_url: eventsUrl(port), document: abs }));
-  await new Promise<void>(() => {});
+  await new Promise<void>(() => { });
 }
 
 async function cmdMonitor(port: number): Promise<void> {
@@ -119,25 +122,34 @@ async function cmdClose(port: number): Promise<void> {
   console.log(`Review on :${port} stopped.`);
 }
 
-const skillTargetPath = join(homedir(), ".claude", "skills", "redline", "SKILL.md");
+const defaultSkillsDir = join(homedir(), ".claude", "skills");
 
-function cmdAddSkill(): void {
-  mkdirSync(dirname(skillTargetPath), { recursive: true });
-  writeFileSync(skillTargetPath, readFileSync(bundledSkillPath, "utf8"));
-  console.log(`Installed skill to ${skillTargetPath} (invoke with /redline, no restart needed).`);
+function skillDir(skillsDir?: string): string {
+  return join(skillsDir ?? defaultSkillsDir, "redline");
 }
 
-// Keeps a previously-installed skill copy current with the CLI's own version,
-// so there's no separate "update the skill" step to remember.
-function syncInstalledSkill(): void {
+function writeSkill(dir: string): void {
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "SKILL.md"), readFileSync(bundledSkillPath, "utf8"));
+  writeFileSync(join(dir, ".version"), VERSION);
+}
+
+function cmdInstallSkill(skillsDir?: string): void {
+  const dir = skillDir(skillsDir);
+  writeSkill(dir);
+  console.log(`Installed skill v${VERSION} to ${join(dir, "SKILL.md")} (invoke with /redline, no restart needed).`);
+}
+
+function ensureSkillCurrent(): void {
   try {
-    if (!existsSync(skillTargetPath)) return;
-    const bundled = readFileSync(bundledSkillPath, "utf8");
-    if (readFileSync(skillTargetPath, "utf8") !== bundled) {
-      writeFileSync(skillTargetPath, bundled);
-    }
+    const dir = skillDir();
+    if (!existsSync(join(dir, "SKILL.md"))) return;
+    const stamp = join(dir, ".version");
+    if (existsSync(stamp) && readFileSync(stamp, "utf8") === VERSION) return;
+    writeSkill(dir);
+    console.error(`[redline] synced the /redline skill to v${VERSION}.`);
   } catch {
-    // Best-effort — never block the actual command over this.
+    // Skill sync must never block a review.
   }
 }
 
@@ -150,12 +162,13 @@ const USAGE = `Usage: redline <command> [--port <n>]
   push              Post replies / mark change requests addressed (JSON on stdin):
                       {"replies":[{"to":"f1","content":"…"}],"addressed":["f2"]}
   close             Stop the running review (Ctrl-C in its terminal does the same).
-  add-skill         Install the /redline skill for Claude Code (~/.claude/skills).
+  skill [dir]       Install/update the /redline skill for Claude Code. Installs to
+                      ~/.claude/skills by default, or into <dir> if given.
+  version           Print the redline version. \`open\` also keeps the installed
+                      skill in sync with it automatically.
 
 One review runs at a time on a fixed port (default ${DEFAULT_PORT}; override with
---port or REDLINE_PORT). On close, the discussion is saved to <file>.review.md.
-If the skill is already installed, every command silently keeps it in sync with
-this CLI's version.`;
+--port or REDLINE_PORT). On close, the discussion is saved to <file>.review.md.`;
 
 function parseArgs(argv: string[]): { positional: string[]; port: number } {
   const positional: string[] = [];
@@ -177,9 +190,12 @@ function fail(message: string): never {
 
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
-  syncInstalledSkill();
-  if (command === "add-skill") {
-    cmdAddSkill();
+  if (command === "version" || command === "--version" || command === "-v") {
+    console.log(VERSION);
+    return;
+  }
+  if (command === "skill") {
+    cmdInstallSkill(rest[0]);
     return;
   }
   const { positional, port } = parseArgs(rest);

@@ -4,6 +4,10 @@
 
 <h1 align="center">
     redline
+    <br/>
+    <sub><sub><i>The skill that helps you actually figure things out.</i></sub></sub>
+    <br/>
+    <br/>
 </h1>
 
 That guy up there is you, right after asking Claude one question and getting
@@ -15,18 +19,16 @@ and the agent answers or fixes it right there, in place, in real time.
 ## Install
 
 ```sh
-npx --yes claude-redline add-skill
+npx --yes claude-redline skill
 ```
 
-This installs the `/redline` skill into `~/.claude/skills/redline/`. No
-restart needed. In Claude Code, just run:
+This installs the `/redline` skill into `~/.claude/skills/redline/`. In Claude Code, just run:
 
 ```
 /redline <a markdown file, or a topic to write about>
 ```
 
-and the agent opens the review UI and drives the rest of the session through
-it.
+and the agent opens the review UI and drives the rest of the session through it.
 
 ## Why I built this
 
@@ -64,24 +66,25 @@ drives on your behalf — you normally never type these yourself.
 ![An ask thread and a change request, both open](./assets/screenshot-review.png)
 ![The agent's reply, and the change request addressed and removed](./assets/screenshot-reply.png)
 
-*Left: a question and a change request, both waiting on the agent. Right:
-the agent replied to the question and fixed the code — the change request is
-gone, the reply is in the thread.*
-
 ## Commands
 
 One review runs at a time, on a fixed port (default `7842`, override with
 `--port <n>` or `REDLINE_PORT`).
 
-#### `add-skill`
+#### `skill`
 
 ```sh
-claude-redline add-skill
+npx --yes claude-redline skill
 ```
 
-Installs the `/redline` skill to `~/.claude/skills/redline/`. Every other
-command also silently re-syncs an already-installed skill against the CLI's
-own version, so this only needs to be run once.
+Installs the `/redline` skill to `~/.claude/skills/redline/`, bundled with
+whatever version of `claude-redline` npx pulls — so the same command both
+installs redline (and its skill) and updates them.
+
+You don't have to run it after every release, though: `open` re-syncs the
+installed skill to the running CLI version on each review, so the moment npx
+pulls a newer `claude-redline`, that run brings the on-disk skill up to date.
+The refreshed skill applies from your next `/redline` invocation.
 
 #### `open <file.md>`
 
@@ -140,10 +143,3 @@ process runs locally and there's no need for authentication, i felt like using a
 paying a token tax upfront by forcing claude to read all the tools descriptions on each conversation (even when redline is not used).
 
 By using a skill, the agent progressively discloses redline usage as it's needed, and only when you actually invoke it.
-
-## Updating
-
-There's no separate update step. Every time `claude-redline` runs, it checks
-the installed skill against the version of the CLI you're using and syncs it
-if they've drifted. So updating the package keeps the skill current for
-free.

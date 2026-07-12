@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Comment, Feedback } from "../../lib/types";
 import { Composer } from "./Composer";
 import { Markdown } from "./Markdown";
-import { ChatIcon, CheckIcon, PencilIcon, ReopenIcon, ReplyIcon, TrashIcon, WandIcon } from "./icons";
+import { ChatIcon, CheckIcon, FileIcon, PencilIcon, ReopenIcon, ReplyIcon, TrashIcon, WandIcon } from "./icons";
 
 interface CardProps {
   item: Feedback;
@@ -47,10 +47,14 @@ export function Card({ item, sessionOpen, orphaned, onReply, onEdit, onDelete, o
   return (
     <div className={"thread thread-" + item.kind}>
       <KindBadge kind={item.kind} />
-      {item.quote && (
+      {item.quote ? (
         <div className={"thread-quote" + (orphaned ? " thread-quote-orphaned" : "")}>
           {truncate(item.quote, 160)}
           {orphaned && <span className="thread-quote-note"> · about a since-edited part</span>}
+        </div>
+      ) : (
+        <div className="thread-scope">
+          <FileIcon size={12} /> Whole document
         </div>
       )}
 

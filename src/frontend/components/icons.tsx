@@ -77,6 +77,13 @@ export const ChatIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const FileIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z" />
+    <path d="M14 3v5h5M9 13h6M9 17h6" />
+  </Svg>
+);
+
 export const WandIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M15 9h0M17.8 6.2 19 5M3 21l9-9M12.2 6.2 11 5" />

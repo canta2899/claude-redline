@@ -1,4 +1,4 @@
-// Bundles the MCP server entry (src/cli.ts + everything it imports from
+// Bundles the CLI entry (src/cli.ts + everything it imports from
 // src/lib) into a single ESM file at dist/cli.js. Node built-ins and the
 // runtime deps (declared in package.json "dependencies") stay external —
 // they're resolved from node_modules at runtime, exactly like an installed
@@ -23,6 +23,7 @@ await build({
   // `.ts` files; this teaches esbuild's resolver that mapping.
   resolveExtensions: [".ts", ".js", ".json"],
   external,
+  define: { __REDLINE_VERSION__: JSON.stringify(pkg.version) },
   logLevel: "info",
 });
 

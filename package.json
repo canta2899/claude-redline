@@ -1,6 +1,6 @@
 {
   "name": "claude-redline",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "author": "canta2899",
   "description": "Live, Google-Docs-style review UI for giving an Agent granular feedback on a markdown document.",
   "type": "module",
@@ -28,6 +28,8 @@
     "build:web": "vite build",
     "build:server": "node scripts/build-server.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p src/frontend/tsconfig.json --noEmit",
+    "dev:link": "pnpm run build && npm link && claude-redline skill",
+    "dev:unlink": "npm unlink -g claude-redline",
     "test": "node --import tsx --test test/session.test.ts",
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
   },
@@ -35,12 +37,15 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@fontsource-variable/hanken-grotesk": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/newsreader": "^5.2.10",
     "@types/node": "^22.10.0",
-    "concurrently": "^9.1.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
     "esbuild": "^0.24.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
