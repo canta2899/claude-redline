@@ -1,0 +1,53 @@
+{
+  "name": "claude-redline",
+  "version": "0.1.4",
+  "license": "MIT",
+  "exports": "./main.ts",
+  "tasks": {
+    "dev": "deno run -A npm:concurrently@^9 -k -n server,web -c blue,magenta \"deno task dev:server\" \"deno task dev:web\"",
+    "dev:server": "deno run -A --watch src/dev.ts",
+    "dev:web": "deno run -A --node-modules-dir npm:vite",
+    "build:web": "deno run -A --node-modules-dir npm:vite build",
+    "compile": "deno compile -A --include dist/public --include skill/SKILL.md --output dist/claude-redline main.ts",
+    "build": "deno task build:web && deno task compile",
+    "check": "deno check main.ts src/dev.ts && deno check --sloppy-imports src/frontend/main.tsx",
+    "test": "deno test --allow-read",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "install-skill": "deno run -A main.ts skill"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1",
+    "@std/cli": "jsr:@std/cli@^1",
+    "@std/fs": "jsr:@std/fs@^1",
+    "@std/media-types": "jsr:@std/media-types@^1",
+    "@std/path": "jsr:@std/path@^1",
+    "react": "npm:react@^19",
+    "react-dom": "npm:react-dom@^19",
+    "react-markdown": "npm:react-markdown@^9",
+    "remark-gfm": "npm:remark-gfm@^4",
+    "vite": "npm:vite@^6",
+    "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^4",
+    "@types/react": "npm:@types/react@^19",
+    "@types/react-dom": "npm:@types/react-dom@^19",
+    "@fontsource-variable/hanken-grotesk": "npm:@fontsource-variable/hanken-grotesk@^5",
+    "@fontsource-variable/jetbrains-mono": "npm:@fontsource-variable/jetbrains-mono@^5",
+    "@fontsource-variable/newsreader": "npm:@fontsource-variable/newsreader@^5"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "lib": ["deno.window", "dom", "dom.iterable", "dom.asynciterable"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "strict": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "fmt": {
+    "include": ["main.ts", "src/", "test/"],
+    "exclude": ["dist", "src/frontend/index.html"]
+  },
+  "lint": {
+    "include": ["main.ts", "src/", "test/"]
+  },
+  "exclude": ["dist", "node_modules", ".dev-data", "assets"]
+}

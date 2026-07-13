@@ -6,7 +6,9 @@ interface IconProps {
   className?: string;
 }
 
-function Svg({ size = 16, className, children }: IconProps & { children: ReactNode }) {
+function Svg(
+  { size = 16, className, children }: IconProps & { children: ReactNode },
+) {
   return (
     <svg
       width={size}

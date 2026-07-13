@@ -1,8 +1,13 @@
-import type { SessionData } from "./types.js";
+import type { SessionData } from "./types.ts";
 
 export function renderTranscript(state: SessionData): string {
   const lines: string[] = ["# Review transcript", ""];
-  lines.push(`_${state.feedback.length} item${state.feedback.length === 1 ? "" : "s"} · ${state.status}_`, "");
+  lines.push(
+    `_${state.feedback.length} item${
+      state.feedback.length === 1 ? "" : "s"
+    } · ${state.status}_`,
+    "",
+  );
 
   if (state.feedback.length === 0) {
     lines.push("No feedback was left.", "");
@@ -11,7 +16,9 @@ export function renderTranscript(state: SessionData): string {
 
   for (const f of state.feedback) {
     const kind = f.kind === "ask" ? "Question" : "Change request";
-    const status = f.kind === "ask" ? (f.resolved ? "resolved" : "open") : "pending";
+    const status = f.kind === "ask"
+      ? (f.resolved ? "resolved" : "open")
+      : "pending";
     lines.push(`## ${f.id} · ${kind} (${status})`, "");
     if (f.quote) {
       lines.push(...f.quote.trim().split("\n").map((l) => `> ${l}`), "");

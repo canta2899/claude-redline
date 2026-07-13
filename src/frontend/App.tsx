@@ -1,17 +1,33 @@
 import { useMemo, useRef, useState } from "react";
-import { useSession } from "./session";
-import { useAnchoredThreads } from "./anchors";
-import { Composer } from "./components/Composer";
-import { Document } from "./components/Document";
-import { Card } from "./components/Card";
-import { CloseIcon, PencilIcon } from "./components/icons";
+import { useSession } from "./session.ts";
+import { useAnchoredThreads } from "./anchors.ts";
+import { Composer } from "./components/Composer.tsx";
+import { Document } from "./components/Document.tsx";
+import { Card } from "./components/Card.tsx";
+import { CloseIcon, PencilIcon } from "./components/icons.tsx";
 
 export function App() {
-  const { session, conn, addFeedback, reply, editComment, remove, resolve, reopen, end } = useSession();
+  const {
+    session,
+    conn,
+    addFeedback,
+    reply,
+    editComment,
+    remove,
+    resolve,
+    reopen,
+    end,
+  } = useSession();
 
   const feedback = session?.feedback ?? [];
-  const openItems = useMemo(() => feedback.filter((f) => !(f.kind === "ask" && f.resolved)), [feedback]);
-  const resolvedItems = useMemo(() => feedback.filter((f) => f.kind === "ask" && f.resolved), [feedback]);
+  const openItems = useMemo(
+    () => feedback.filter((f) => !(f.kind === "ask" && f.resolved)),
+    [feedback],
+  );
+  const resolvedItems = useMemo(
+    () => feedback.filter((f) => f.kind === "ask" && f.resolved),
+    [feedback],
+  );
   const sessionOpen = session?.status === "open";
   const document = session?.document ?? "";
 
@@ -22,7 +38,13 @@ export function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [endOpen, setEndOpen] = useState(false);
 
-  const { placement, registerCard, orphaned } = useAnchoredThreads(pageRef, marginRef, openItems, activeId, document);
+  const { placement, registerCard, orphaned } = useAnchoredThreads(
+    pageRef,
+    marginRef,
+    openItems,
+    activeId,
+    document,
+  );
 
   return (
     <div className="app">
@@ -37,11 +59,20 @@ export function App() {
         </span>
         <div className="topbar-actions">
           {resolvedItems.length > 0 && (
-            <button type="button" className="resolved-toggle" onClick={() => setHistoryOpen(true)}>
+            <button
+              type="button"
+              className="resolved-toggle"
+              onClick={() => setHistoryOpen(true)}
+            >
               Resolved <span className="count">{resolvedItems.length}</span>
             </button>
           )}
-          <button type="button" className="btn-ghost" disabled={!sessionOpen} onClick={() => setEndOpen(true)}>
+          <button
+            type="button"
+            className="btn-ghost"
+            disabled={!sessionOpen}
+            onClick={() => setEndOpen(true)}
+          >
             End review
           </button>
         </div>
@@ -53,7 +84,8 @@ export function App() {
             document={document}
             sessionOpen={sessionOpen}
             pageRef={pageRef}
-            onAddFeedback={(kind, content, quote) => addFeedback(kind, content, quote)}
+            onAddFeedback={(kind, content, quote) =>
+              addFeedback(kind, content, quote)}
           />
         </div>
 
@@ -64,27 +96,36 @@ export function App() {
 
           {openItems.length === 0 && sessionOpen && (
             <p className="margin-hint">
-              Highlight any text to <strong>ask a question</strong> or <strong>request a change</strong>. To comment on
-              the document as a whole, use <strong>Comment on document</strong>.
+              Highlight any text to <strong>ask a question</strong> or{" "}
+              <strong>request a change</strong>. To comment on the document as a
+              whole, use <strong>Comment on document</strong>.
             </p>
           )}
 
-          <div className="thread-layer" style={{ height: placement.layerHeight }}>
+          <div
+            className="thread-layer"
+            style={{ height: placement.layerHeight }}
+          >
             {openItems.map((item) => (
               <div
                 key={item.id}
                 ref={registerCard(item.id)}
-                className={"thread-anchor" + (activeId === item.id ? " is-active" : "")}
-                style={{ transform: `translateY(${placement.tops[item.id] ?? 0}px)` }}
+                className={"thread-anchor" +
+                  (activeId === item.id ? " is-active" : "")}
+                style={{
+                  transform: `translateY(${placement.tops[item.id] ?? 0}px)`,
+                }}
                 onMouseEnter={() => setActiveId(item.id)}
-                onMouseLeave={() => setActiveId((cur) => (cur === item.id ? null : cur))}
+                onMouseLeave={() =>
+                  setActiveId((cur) => (cur === item.id ? null : cur))}
               >
                 <Card
                   item={item}
                   sessionOpen={sessionOpen}
                   orphaned={orphaned.has(item.id)}
                   onReply={(content) => reply(item.id, content)}
-                  onEdit={(index, content) => editComment(item.id, index, content)}
+                  onEdit={(index, content) =>
+                    editComment(item.id, index, content)}
                   onDelete={() => remove(item.id)}
                   onResolve={() => resolve(item.id)}
                   onReopen={() => reopen(item.id)}
@@ -95,8 +136,10 @@ export function App() {
         </aside>
       </div>
 
-      {/* A note on the whole document is a rare, deliberate action — kept out of
-          the way behind a floating button rather than a panel below the page. */}
+      {
+        /* A note on the whole document is a rare, deliberate action — kept out of
+          the way behind a floating button rather than a panel below the page. */
+      }
       {sessionOpen && (
         <>
           <button
@@ -112,11 +155,18 @@ export function App() {
               <div className="doc-note">
                 <div className="doc-note-head">
                   <span className="doc-note-title">On the whole document</span>
-                  <button type="button" className="icon-btn" title="Close" onClick={() => setNoteOpen(false)}>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    title="Close"
+                    onClick={() => setNoteOpen(false)}
+                  >
                     <CloseIcon size={15} />
                   </button>
                 </div>
-                <p className="doc-note-sub">A note that isn't tied to a specific passage.</p>
+                <p className="doc-note-sub">
+                  A note that isn't tied to a specific passage.
+                </p>
                 <Composer
                   autoFocus
                   placeholder="Ask about the document, or request a rewrite…"
@@ -154,42 +204,61 @@ export function App() {
               <span className="drawer-title">
                 Resolved<span className="count">{resolvedItems.length}</span>
               </span>
-              <button type="button" className="icon-btn" title="Close" onClick={() => setHistoryOpen(false)}>
+              <button
+                type="button"
+                className="icon-btn"
+                title="Close"
+                onClick={() => setHistoryOpen(false)}
+              >
                 <CloseIcon size={17} />
               </button>
             </div>
             <div className="drawer-body">
-              {resolvedItems.length === 0 ? (
-                <p className="drawer-empty">No resolved threads yet.</p>
-              ) : (
-                resolvedItems.map((item) => (
-                  <Card
-                    key={item.id}
-                    item={item}
-                    sessionOpen={sessionOpen}
-                    onReply={(content) => reply(item.id, content)}
-                    onEdit={(index, content) => editComment(item.id, index, content)}
-                    onDelete={() => remove(item.id)}
-                    onResolve={() => resolve(item.id)}
-                    onReopen={() => reopen(item.id)}
-                  />
-                ))
-              )}
+              {resolvedItems.length === 0
+                ? <p className="drawer-empty">No resolved threads yet.</p>
+                : (
+                  resolvedItems.map((item) => (
+                    <Card
+                      key={item.id}
+                      item={item}
+                      sessionOpen={sessionOpen}
+                      onReply={(content) => reply(item.id, content)}
+                      onEdit={(index, content) =>
+                        editComment(item.id, index, content)}
+                      onDelete={() => remove(item.id)}
+                      onResolve={() => resolve(item.id)}
+                      onReopen={() => reopen(item.id)}
+                    />
+                  ))
+                )}
             </div>
           </aside>
         </>
       )}
 
       {endOpen && (
-        <div className="modal-scrim" onClick={() => setEndOpen(false)}>
-          <div className="modal" role="dialog" aria-modal="true" aria-label="End review" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-scrim"
+          onClick={() => setEndOpen(false)}
+        >
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="End review"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-title">End this review?</div>
             <p className="modal-body">
-              This tells the Agent the document is fully resolved. Any open comments stop here and no further feedback
-              can be added.
+              This tells the Agent the document is fully resolved. Any open
+              comments stop here and no further feedback can be added.
             </p>
             <div className="modal-actions">
-              <button type="button" className="btn-ghost" onClick={() => setEndOpen(false)}>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => setEndOpen(false)}
+              >
                 Cancel
               </button>
               <button
@@ -207,7 +276,9 @@ export function App() {
         </div>
       )}
 
-      {!sessionOpen && session && <div className="closed-banner">This review is closed.</div>}
+      {!sessionOpen && session && (
+        <div className="closed-banner">This review is closed.</div>
+      )}
     </div>
   );
 }

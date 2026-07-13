@@ -18,8 +18,16 @@ and the agent answers or fixes it right there, in place, in real time.
 
 ## Install
 
+`claude-redline` ships as a single self-contained binary (built with
+`deno compile`, frontend embedded — no Node, no runtime deps). Grab the one for
+your platform from the [latest release](https://github.com/canta2899/claude-redline/releases/latest),
+put it on your `PATH`, then install the skill:
+
 ```sh
-npx --yes claude-redline skill
+# macOS (Apple Silicon) example
+curl -L -o claude-redline https://github.com/canta2899/claude-redline/releases/latest/download/claude-redline-macos-aarch64
+chmod +x claude-redline && sudo mv claude-redline /usr/local/bin/
+claude-redline skill
 ```
 
 This installs the `/redline` skill into `~/.claude/skills/redline/`. In Claude Code, just run:
@@ -74,17 +82,17 @@ One review runs at a time, on a fixed port (default `7842`, override with
 #### `skill`
 
 ```sh
-npx --yes claude-redline skill
+claude-redline skill
 ```
 
-Installs the `/redline` skill to `~/.claude/skills/redline/`, bundled with
-whatever version of `claude-redline` npx pulls — so the same command both
-installs redline (and its skill) and updates them.
+Installs (or patches) the `/redline` skill in `~/.claude/skills/redline/`,
+bundled inside the binary — so the same command both installs the skill and
+brings it up to date after you drop in a newer `claude-redline` binary.
 
 You don't have to run it after every release, though: `open` re-syncs the
-installed skill to the running CLI version on each review, so the moment npx
-pulls a newer `claude-redline`, that run brings the on-disk skill up to date.
-The refreshed skill applies from your next `/redline` invocation.
+installed skill to the running binary's version on each review, so the moment
+you replace the binary with a newer build, that run brings the on-disk skill up
+to date. The refreshed skill applies from your next `/redline` invocation.
 
 #### `open <file.md>`
 
@@ -143,3 +151,22 @@ process runs locally and there's no need for authentication, i felt like using a
 paying a token tax upfront by forcing claude to read all the tools descriptions on each conversation (even when redline is not used).
 
 By using a skill, the agent progressively discloses redline usage as it's needed, and only when you actually invoke it.
+
+## Development
+
+Built on [Deno](https://deno.com) (backend + tooling) with a React + Vite
+frontend that gets embedded into the binary at compile time. No `package.json`,
+no `node_modules` — dependencies and tasks live in `deno.json`.
+
+```sh
+deno task dev        # Vite dev server + live backend, proxied together
+deno task check      # typecheck backend and frontend
+deno task test       # run the unit tests
+deno fmt             # format
+deno task build      # build the frontend, then compile the binary to dist/
+```
+
+`deno task build` produces a single self-contained executable at
+`dist/claude-redline` with the built UI and the `/redline` skill embedded via
+`deno compile --include`. Tagged pushes (`v*`) build that binary for macOS,
+Linux, and Windows in CI and attach them to a GitHub Release.

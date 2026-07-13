@@ -1,13 +1,12 @@
-import { EventEmitter } from "node:events";
 import type {
   Comment,
   Feedback,
   FeedbackKind,
-  PullResult,
   PulledItem,
+  PullResult,
   Reply,
   SessionData,
-} from "./types.js";
+} from "./types.ts";
 
 export class SessionValidationError extends Error {}
 
@@ -16,11 +15,13 @@ export class SessionValidationError extends Error {}
  * source of truth here — it lives on disk and `setDocument` mirrors it in.
  * Feedback is memory-only and lost when the process exits.
  */
-export class SessionManager extends EventEmitter {
+export class SessionManager {
   private data: SessionData;
+  // A single "change" signal is all any consumer needs, so this stays a plain
+  // listener set rather than a full event emitter.
+  private listeners = new Set<() => void>();
 
   constructor(document: string) {
-    super();
     this.data = {
       created_at: new Date().toISOString(),
       status: "open",
@@ -30,6 +31,14 @@ export class SessionManager extends EventEmitter {
       document,
       feedback: [],
     };
+  }
+
+  on(_event: "change", listener: () => void): void {
+    this.listeners.add(listener);
+  }
+
+  private emitChange(): void {
+    for (const listener of this.listeners) listener();
   }
 
   getDocument(): string {
@@ -44,7 +53,7 @@ export class SessionManager extends EventEmitter {
     if (content === this.data.document) return;
     this.data.document = content;
     this.bumpRev();
-    this.emit("change");
+    this.emitChange();
   }
 
   addFeedback(kind: FeedbackKind, content: string, quote?: string): Feedback {
@@ -56,15 +65,19 @@ export class SessionManager extends EventEmitter {
     };
     if (quote !== undefined && quote.trim()) item.quote = quote;
     this.data.feedback.push(item);
-    this.emit("change");
+    this.emitChange();
     return item;
   }
 
-  reply(id: string, content: string, author: "user" | "agent" = "user"): Feedback {
+  reply(
+    id: string,
+    content: string,
+    author: "user" | "agent" = "user",
+  ): Feedback {
     this.assertOpen();
     const item = this.getAsk(id);
     item.comments.push(this.makeComment(author, content));
-    this.emit("change");
+    this.emitChange();
     return item;
   }
 
@@ -72,11 +85,17 @@ export class SessionManager extends EventEmitter {
     this.assertOpen();
     const item = this.getItem(id);
     const comment = item.comments[index];
-    if (!comment) throw new SessionValidationError(`Comment ${index} not found on "${id}".`);
-    if (comment.author !== "user") throw new SessionValidationError("Only your own comments can be edited.");
+    if (!comment) {
+      throw new SessionValidationError(
+        `Comment ${index} not found on "${id}".`,
+      );
+    }
+    if (comment.author !== "user") {
+      throw new SessionValidationError("Only your own comments can be edited.");
+    }
     comment.content = content;
     comment.rev = this.bumpRev();
-    this.emit("change");
+    this.emitChange();
     return item;
   }
 
@@ -84,14 +103,14 @@ export class SessionManager extends EventEmitter {
     this.assertOpen();
     this.getItem(id); // throws if unknown
     this.data.feedback = this.data.feedback.filter((f) => f.id !== id);
-    this.emit("change");
+    this.emitChange();
   }
 
   resolve(id: string): Feedback {
     this.assertOpen();
     const item = this.getAsk(id);
     item.resolved = true;
-    this.emit("change");
+    this.emitChange();
     return item;
   }
 
@@ -101,14 +120,14 @@ export class SessionManager extends EventEmitter {
     item.resolved = false;
     // Fresh rev on every comment so the whole thread re-surfaces on the next pull.
     for (const c of item.comments) c.rev = this.bumpRev();
-    this.emit("change");
+    this.emitChange();
     return item;
   }
 
   end(): void {
     if (this.data.status === "closed") return;
     this.data.status = "closed";
-    this.emit("change");
+    this.emitChange();
   }
 
   /** Validated in full before any mutation, so a bad id leaves state untouched. */
@@ -117,12 +136,14 @@ export class SessionManager extends EventEmitter {
     for (const r of replies) this.getAsk(r.to);
     for (const id of addressed) this.getChange(id);
 
-    for (const r of replies) this.getItem(r.to).comments.push(this.makeComment("agent", r.content));
+    for (const r of replies) {
+      this.getItem(r.to).comments.push(this.makeComment("agent", r.content));
+    }
     if (addressed.length) {
       const drop = new Set(addressed);
       this.data.feedback = this.data.feedback.filter((f) => !drop.has(f.id));
     }
-    this.emit("change");
+    this.emitChange();
   }
 
   /** Comments new since the last pull, per open item. Advances the high-water mark. */
@@ -141,7 +162,9 @@ export class SessionManager extends EventEmitter {
     for (const f of this.data.feedback) {
       if (f.resolved) continue;
       // Never echo the Agent's own replies back as "feedback".
-      const fresh = f.comments.filter((c) => c.rev > since && c.author === "user");
+      const fresh = f.comments.filter((c) =>
+        c.rev > since && c.author === "user"
+      );
       if (fresh.length === 0) continue;
       const item: PulledItem = {
         id: f.id,
@@ -157,7 +180,12 @@ export class SessionManager extends EventEmitter {
   }
 
   private makeComment(author: "user" | "agent", content: string): Comment {
-    return { author, content, at: new Date().toISOString(), rev: this.bumpRev() };
+    return {
+      author,
+      content,
+      at: new Date().toISOString(),
+      rev: this.bumpRev(),
+    };
   }
 
   private getItem(id: string): Feedback {
@@ -168,13 +196,21 @@ export class SessionManager extends EventEmitter {
 
   private getAsk(id: string): Feedback {
     const item = this.getItem(id);
-    if (item.kind !== "ask") throw new SessionValidationError(`Feedback "${id}" is a change request, not an ask thread.`);
+    if (item.kind !== "ask") {
+      throw new SessionValidationError(
+        `Feedback "${id}" is a change request, not an ask thread.`,
+      );
+    }
     return item;
   }
 
   private getChange(id: string): Feedback {
     const item = this.getItem(id);
-    if (item.kind !== "change") throw new SessionValidationError(`Feedback "${id}" is an ask thread, not a change request.`);
+    if (item.kind !== "change") {
+      throw new SessionValidationError(
+        `Feedback "${id}" is an ask thread, not a change request.`,
+      );
+    }
     return item;
   }
 

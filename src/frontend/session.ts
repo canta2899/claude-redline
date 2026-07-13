@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ClientMessage, FeedbackKind, SessionData, ServerMessage } from "../lib/types";
+import type {
+  ClientMessage,
+  FeedbackKind,
+  ServerMessage,
+  SessionData,
+} from "../types.ts";
 
 export type ConnStatus = "connecting" | "connected" | "disconnected" | "error";
 
@@ -48,10 +53,15 @@ export function useSession(): Session {
     conn,
     addFeedback: useCallback(
       (kind, content, quote) => send({ type: "add", kind, content, quote }),
-      [send]
+      [send],
     ),
-    reply: useCallback((id, content) => send({ type: "reply", id, content }), [send]),
-    editComment: useCallback((id, index, content) => send({ type: "edit", id, index, content }), [send]),
+    reply: useCallback((id, content) => send({ type: "reply", id, content }), [
+      send,
+    ]),
+    editComment: useCallback(
+      (id, index, content) => send({ type: "edit", id, index, content }),
+      [send],
+    ),
     remove: useCallback((id) => send({ type: "delete", id }), [send]),
     resolve: useCallback((id) => send({ type: "resolve", id }), [send]),
     reopen: useCallback((id) => send({ type: "reopen", id }), [send]),

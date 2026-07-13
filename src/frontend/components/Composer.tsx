@@ -18,11 +18,23 @@ interface ComposerProps {
   onCancel?: () => void;
 }
 
-export function Composer({ placeholder, autoFocus, initialValue, submitLabel, onSubmit, actions, onCancel }: ComposerProps) {
+export function Composer(
+  {
+    placeholder,
+    autoFocus,
+    initialValue,
+    submitLabel,
+    onSubmit,
+    actions,
+    onCancel,
+  }: ComposerProps,
+) {
   const [value, setValue] = useState(initialValue ?? "");
 
-  const resolved: ComposerAction[] =
-    actions ?? (onSubmit ? [{ label: submitLabel ?? "Send", onSubmit, variant: "primary" }] : []);
+  const resolved: ComposerAction[] = actions ??
+    (onSubmit
+      ? [{ label: submitLabel ?? "Send", onSubmit, variant: "primary" }]
+      : []);
 
   const run = (action: ComposerAction) => {
     const content = value.trim();
@@ -39,7 +51,9 @@ export function Composer({ placeholder, autoFocus, initialValue, submitLabel, on
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && resolved[0]) run(resolved[0]);
+          if (
+            (e.metaKey || e.ctrlKey) && e.key === "Enter" && resolved[0]
+          ) run(resolved[0]);
           if (e.key === "Escape" && onCancel) onCancel();
         }}
       />
@@ -48,7 +62,10 @@ export function Composer({ placeholder, autoFocus, initialValue, submitLabel, on
           <button
             key={action.label}
             type="button"
-            className={action.variant === "outline" || (i > 0 && !action.variant) ? "btn-outline" : "btn-primary"}
+            className={action.variant === "outline" ||
+                (i > 0 && !action.variant)
+              ? "btn-outline"
+              : "btn-primary"}
             disabled={!value.trim()}
             onClick={() => run(action)}
           >

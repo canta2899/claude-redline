@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 export interface AnchorItem {
   id: string;
@@ -12,7 +19,8 @@ const HL_ACTIVE = "redline-quote-active";
 // Not in every TS DOM lib yet.
 type HighlightCtor = new (...ranges: Range[]) => object;
 const win = window as unknown as { Highlight?: HighlightCtor };
-const cssHighlights = (CSS as unknown as { highlights?: Map<string, object> }).highlights;
+const cssHighlights =
+  (CSS as unknown as { highlights?: Map<string, object> }).highlights;
 
 export interface Placement {
   tops: Record<string, number>;
@@ -25,14 +33,18 @@ export function useAnchoredThreads(
   marginRef: RefObject<HTMLElement | null>,
   threads: AnchorItem[],
   activeId: string | null,
-  contentKey: string
+  contentKey: string,
 ): {
   placement: Placement;
   registerCard: (id: string) => (el: HTMLDivElement | null) => void;
   orphaned: Set<string>;
 } {
   const cardEls = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [placement, setPlacement] = useState<Placement>({ tops: {}, layerHeight: 0, order: [] });
+  const [placement, setPlacement] = useState<Placement>({
+    tops: {},
+    layerHeight: 0,
+    order: [],
+  });
   const [orphaned, setOrphaned] = useState<Set<string>>(new Set());
   const [tick, setTick] = useState(0);
 
@@ -41,7 +53,7 @@ export function useAnchoredThreads(
       if (el) cardEls.current.set(id, el);
       else cardEls.current.delete(id);
     },
-    []
+    [],
   );
 
   const signature = threads.map((t) => `${t.id}:${t.quote ?? ""}`).join("|");
@@ -76,7 +88,11 @@ export function useAnchoredThreads(
       cursor = top + h + GAP;
     }
 
-    const next: Placement = { tops, layerHeight: Math.max(0, cursor - GAP), order: ordered.map((a) => a.id) };
+    const next: Placement = {
+      tops,
+      layerHeight: Math.max(0, cursor - GAP),
+      order: ordered.map((a) => a.id),
+    };
     setPlacement((prev) => (samePlacement(prev, next) ? prev : next));
   }, [signature, activeId, contentKey, tick, pageRef, marginRef, threads]);
 
@@ -86,10 +102,10 @@ export function useAnchoredThreads(
     const bump = () => setTick((n) => n + 1);
     const ro = new ResizeObserver(bump);
     ro.observe(page);
-    window.addEventListener("resize", bump);
+    globalThis.addEventListener("resize", bump);
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", bump);
+      globalThis.removeEventListener("resize", bump);
     };
   }, [pageRef]);
 
@@ -102,7 +118,10 @@ function sameSet(a: Set<string>, b: Set<string>): boolean {
   return true;
 }
 
-function paintHighlights(anchors: { id: string; range: Range | null }[], activeId: string | null): void {
+function paintHighlights(
+  anchors: { id: string; range: Range | null }[],
+  activeId: string | null,
+): void {
   if (!cssHighlights || !win.Highlight) return;
   const base: Range[] = [];
   const active: Range[] = [];
@@ -170,7 +189,9 @@ function collapse(full: string): { norm: string; back: number[] } {
 function samePlacement(a: Placement, b: Placement): boolean {
   if (a.layerHeight !== b.layerHeight) return false;
   if (a.order.length !== b.order.length) return false;
-  for (let i = 0; i < a.order.length; i++) if (a.order[i] !== b.order[i]) return false;
+  for (let i = 0; i < a.order.length; i++) {
+    if (a.order[i] !== b.order[i]) return false;
+  }
   for (const id of a.order) if (a.tops[id] !== b.tops[id]) return false;
   return true;
 }

@@ -1,8 +1,17 @@
 import { useState } from "react";
-import type { Comment, Feedback } from "../../lib/types";
-import { Composer } from "./Composer";
-import { Markdown } from "./Markdown";
-import { ChatIcon, CheckIcon, FileIcon, PencilIcon, ReopenIcon, ReplyIcon, TrashIcon, WandIcon } from "./icons";
+import type { Comment, Feedback } from "../../types.ts";
+import { Composer } from "./Composer.tsx";
+import { Markdown } from "./Markdown.tsx";
+import {
+  ChatIcon,
+  CheckIcon,
+  FileIcon,
+  PencilIcon,
+  ReopenIcon,
+  ReplyIcon,
+  TrashIcon,
+  WandIcon,
+} from "./icons.tsx";
 
 interface CardProps {
   item: Feedback;
@@ -16,7 +25,18 @@ interface CardProps {
   onReopen: () => void;
 }
 
-export function Card({ item, sessionOpen, orphaned, onReply, onEdit, onDelete, onResolve, onReopen }: CardProps) {
+export function Card(
+  {
+    item,
+    sessionOpen,
+    orphaned,
+    onReply,
+    onEdit,
+    onDelete,
+    onResolve,
+    onReopen,
+  }: CardProps,
+) {
   const [replying, setReplying] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
@@ -32,7 +52,9 @@ export function Card({ item, sessionOpen, orphaned, onReply, onEdit, onDelete, o
             </button>
           )}
         </div>
-        {item.quote && <div className="thread-quote">{truncate(item.quote, 120)}</div>}
+        {item.quote && (
+          <div className="thread-quote">{truncate(item.quote, 120)}</div>
+        )}
         <div className="resolved-summary">
           <Markdown>{item.comments[0]?.content ?? ""}</Markdown>
         </div>
@@ -42,21 +64,31 @@ export function Card({ item, sessionOpen, orphaned, onReply, onEdit, onDelete, o
 
   const isAsk = item.kind === "ask";
   const lastComment = item.comments[item.comments.length - 1];
-  const awaitingReply = isAsk && sessionOpen && !item.resolved && lastComment?.author === "user";
+  const awaitingReply = isAsk && sessionOpen && !item.resolved &&
+    lastComment?.author === "user";
 
   return (
     <div className={"thread thread-" + item.kind}>
       <KindBadge kind={item.kind} />
-      {item.quote ? (
-        <div className={"thread-quote" + (orphaned ? " thread-quote-orphaned" : "")}>
-          {truncate(item.quote, 160)}
-          {orphaned && <span className="thread-quote-note"> · about a since-edited part</span>}
-        </div>
-      ) : (
-        <div className="thread-scope">
-          <FileIcon size={12} /> Whole document
-        </div>
-      )}
+      {item.quote
+        ? (
+          <div
+            className={"thread-quote" +
+              (orphaned ? " thread-quote-orphaned" : "")}
+          >
+            {truncate(item.quote, 160)}
+            {orphaned && (
+              <span className="thread-quote-note">
+                · about a since-edited part
+              </span>
+            )}
+          </div>
+        )
+        : (
+          <div className="thread-scope">
+            <FileIcon size={12} /> Whole document
+          </div>
+        )}
 
       <div className="thread-messages">
         {item.comments.map((comment, index) => (
@@ -92,16 +124,30 @@ export function Card({ item, sessionOpen, orphaned, onReply, onEdit, onDelete, o
       {sessionOpen && (
         <div className="thread-actions">
           {isAsk && !replying && (
-            <button type="button" className="chip-btn" onClick={() => setReplying(true)}>
+            <button
+              type="button"
+              className="chip-btn"
+              onClick={() => setReplying(true)}
+            >
               <ReplyIcon size={14} /> Reply
             </button>
           )}
           {isAsk && (
-            <button type="button" className="chip-btn chip-resolve" title="Mark this thread resolved" onClick={onResolve}>
+            <button
+              type="button"
+              className="chip-btn chip-resolve"
+              title="Mark this thread resolved"
+              onClick={onResolve}
+            >
               <CheckIcon size={14} /> Resolve
             </button>
           )}
-          <button type="button" className="chip-btn" title="Delete this feedback" onClick={maybeDelete(onDelete)}>
+          <button
+            type="button"
+            className="chip-btn"
+            title="Delete this feedback"
+            onClick={maybeDelete(onDelete)}
+          >
             <TrashIcon size={14} /> Delete
           </button>
         </div>
@@ -126,7 +172,9 @@ export function Card({ item, sessionOpen, orphaned, onReply, onEdit, onDelete, o
 function KindBadge({ kind }: { kind: "ask" | "change" }) {
   const isAsk = kind === "ask";
   return (
-    <div className={"intent-tag " + (isAsk ? "intent-question" : "intent-change")}>
+    <div
+      className={"intent-tag " + (isAsk ? "intent-question" : "intent-change")}
+    >
       {isAsk ? <ChatIcon size={12} /> : <WandIcon size={12} />}
       {isAsk ? "Question" : "Change request"}
     </div>
@@ -142,7 +190,10 @@ interface MessageProps {
   onSaveEdit: (content: string) => void;
 }
 
-function Message({ comment, sessionOpen, editing, onStartEdit, onCancelEdit, onSaveEdit }: MessageProps) {
+function Message(
+  { comment, sessionOpen, editing, onStartEdit, onCancelEdit, onSaveEdit }:
+    MessageProps,
+) {
   const isUser = comment.author === "user";
 
   if (editing) {
@@ -166,7 +217,12 @@ function Message({ comment, sessionOpen, editing, onStartEdit, onCancelEdit, onS
         <span className="comment-author">{isUser ? "You" : "Agent"}</span>
         {isUser && sessionOpen && (
           <div className="comment-tools">
-            <button type="button" className="icon-btn" title="Edit" onClick={onStartEdit}>
+            <button
+              type="button"
+              className="icon-btn"
+              title="Edit"
+              onClick={onStartEdit}
+            >
               <PencilIcon size={13} />
             </button>
           </div>

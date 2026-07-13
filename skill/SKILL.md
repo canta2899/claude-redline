@@ -27,10 +27,10 @@ chat, don't summarize it, and don't ask "want me to open the review?" first —
 just open it. From there the whole conversation happens in the UI, round by
 round; the chat is only for the short status lines the steps below call for.
 
-Every command below runs through:
+Every command below runs through the `claude-redline` binary on your PATH:
 
 ```
-npx --yes claude-redline <command>
+claude-redline <command>
 ```
 
 Commands: `open`, `monitor`, `push`, `close`. One review runs at a time on a
@@ -52,7 +52,7 @@ Then `open` it. `open` **starts a blocking server** that serves the UI and watch
 the file, so launch it as a **background** process:
 
 ```
-npx --yes claude-redline open ./auth-refactor-review.md
+claude-redline open ./auth-refactor-review.md
 ```
 
 It prints one JSON line and keeps running:
@@ -140,7 +140,7 @@ you edited the file):
 ```
 
 ```
-npx --yes claude-redline push < <scratchpad>/push.json ; rm -f <scratchpad>/push.json
+claude-redline push < <scratchpad>/push.json ; rm -f <scratchpad>/push.json
 ```
 
 Use the same path in both halves. The `;` (not `&&`) means `rm` runs even if the
@@ -156,7 +156,7 @@ The **user** ends the review from the UI ("End review"); your next frame arrives
 with `status: "closed"`. Stop the server:
 
 ```
-npx --yes claude-redline close
+claude-redline close
 ```
 
 On close, redline writes the discussion to a sidecar next to the document

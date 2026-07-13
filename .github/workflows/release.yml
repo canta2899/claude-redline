@@ -1,4 +1,4 @@
-name: Publish Package
+name: Release
 
 on:
   push:
@@ -6,21 +6,57 @@ on:
       - "v*"
 
 permissions:
-  id-token: write # Required for OIDC
-  contents: read
+  contents: write # create the GitHub Release and upload binaries
 
 jobs:
-  publish:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            name: claude-redline-linux-x86_64
+          - target: aarch64-unknown-linux-gnu
+            name: claude-redline-linux-aarch64
+          - target: x86_64-apple-darwin
+            name: claude-redline-macos-x86_64
+          - target: aarch64-apple-darwin
+            name: claude-redline-macos-aarch64
+          - target: x86_64-pc-windows-msvc
+            name: claude-redline-windows-x86_64.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # Build the frontend once per job; each binary embeds a fresh build.
+      - run: deno task build:web
+
+      - name: Compile ${{ matrix.target }}
+        run: >
+          deno compile -A
+          --target ${{ matrix.target }}
+          --include dist/public
+          --include skill/SKILL.md
+          --output dist/${{ matrix.name }}
+          main.ts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist/${{ matrix.name }}
+
+  release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/download-artifact@v4
         with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
-      - run: pnpm publish --access public --no-git-checks
+          path: artifacts
+          merge-multiple: true
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
