@@ -18,19 +18,11 @@ and the agent answers or fixes it right there, in place, in real time.
 
 ## Install
 
-`claude-redline` ships as a single self-contained binary (built with
-`deno compile`, frontend embedded — no Node, no runtime deps). Grab the one for
-your platform from the [latest release](https://github.com/canta2899/claude-redline/releases/latest),
-put it on your `PATH`, then install the skill:
-
 ```sh
-# macOS (Apple Silicon) example
-curl -L -o claude-redline https://github.com/canta2899/claude-redline/releases/latest/download/claude-redline-macos-aarch64
-chmod +x claude-redline && sudo mv claude-redline /usr/local/bin/
-claude-redline skill
+curl -fsSL https://raw.githubusercontent.com/canta2899/claude-redline/main/get.sh | sh
 ```
 
-This installs the `/redline` skill into `~/.claude/skills/redline/`. In Claude Code, just run:
+Run the same command again anytime to update. In Claude Code, just run:
 
 ```
 /redline <a markdown file, or a topic to write about>
