@@ -1,6 +1,6 @@
 {
   "name": "claude-redline",
-  "version": "0.1.4",
+  "version": "0.1.0",
   "license": "MIT",
   "exports": "./main.ts",
   "tasks": {
@@ -36,18 +36,39 @@
   },
   "nodeModulesDir": "auto",
   "compilerOptions": {
-    "lib": ["deno.window", "dom", "dom.iterable", "dom.asynciterable"],
+    "lib": [
+      "deno.window",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable"
+    ],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "strict": true,
     "noUncheckedIndexedAccess": true
   },
   "fmt": {
-    "include": ["main.ts", "src/", "test/"],
-    "exclude": ["dist", "src/frontend/index.html"]
+    "include": [
+      "main.ts",
+      "src/",
+      "test/"
+    ],
+    "exclude": [
+      "dist",
+      "src/frontend/index.html"
+    ]
   },
   "lint": {
-    "include": ["main.ts", "src/", "test/"]
+    "include": [
+      "main.ts",
+      "src/",
+      "test/"
+    ]
   },
-  "exclude": ["dist", "node_modules", ".dev-data", "assets"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    ".dev-data",
+    "assets"
+  ]
 }
