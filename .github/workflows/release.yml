@@ -42,10 +42,25 @@ jobs:
           --output dist/${{ matrix.name }}
           main.ts
 
+      - name: Package ${{ matrix.target }}
+        run: |
+          mkdir -p pkg
+          if [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
+            cp dist/${{ matrix.name }} pkg/claude-redline.exe
+          else
+            cp dist/${{ matrix.name }} pkg/claude-redline
+          fi
+          cp LICENSE pkg/LICENSE
+          tar -czf dist/${{ matrix.name }}.tar.gz -C pkg .
+          cd dist
+          sha256sum ${{ matrix.name }}.tar.gz > ${{ matrix.name }}.tar.gz.sha256
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: dist/${{ matrix.name }}
+          path: |
+            dist/${{ matrix.name }}.tar.gz
+            dist/${{ matrix.name }}.tar.gz.sha256
 
   release:
     needs: build
@@ -55,8 +70,12 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - name: Build combined checksums file
+        run: cat artifacts/*.tar.gz.sha256 > artifacts/SHA256SUMS
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
+          files: |
+            artifacts/*.tar.gz
+            artifacts/SHA256SUMS
           generate_release_notes: true

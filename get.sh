@@ -46,7 +46,7 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BIN}-${OS}-${ARCH}"
+DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BIN}-${OS}-${ARCH}.tar.gz"
 
 if [ -z "$REDLINE_INSTALL_DIR" ]; then
   INSTALL_DIR="$HOME/.local/bin"
@@ -61,7 +61,7 @@ if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
 fi
 
 echo "Downloading $BIN $VERSION ($OS-$ARCH)..."
-curl -fsSL "$DOWNLOAD_URL" -o "$INSTALL_DIR/$BIN"
+curl -fsSL "$DOWNLOAD_URL" | tar -xzf - -C "$INSTALL_DIR" "$BIN"
 chmod +x "$INSTALL_DIR/$BIN"
 
 echo "✅ $BIN $VERSION installed to $INSTALL_DIR/$BIN"
