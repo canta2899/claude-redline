@@ -61,7 +61,7 @@ if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
 fi
 
 echo "Downloading $BIN $VERSION ($OS-$ARCH)..."
-curl -fsSL "$DOWNLOAD_URL" | tar -xzf - -C "$INSTALL_DIR" "$BIN"
+curl -fsSL "$DOWNLOAD_URL" | tar -xzf - -C "$INSTALL_DIR" "./$BIN"
 chmod +x "$INSTALL_DIR/$BIN"
 
 echo "✅ $BIN $VERSION installed to $INSTALL_DIR/$BIN"
